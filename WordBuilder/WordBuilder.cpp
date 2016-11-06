@@ -278,6 +278,7 @@ int WordBuilder::scan()
 {
 	size_t sub_size;
 	size_t elems = 0;
+	size_t norm_elems = 0;
 	int count = 0;
 	vector<string> subset;
 	size_t sub_letters = 0;
@@ -287,7 +288,10 @@ int WordBuilder::scan()
 	{
 		subset.clear();
 		elems = createLetterSubSets(subset, letters, sub_size, "");
-		normalizeSet(subset);
+		norm_elems = normalizeSet(subset);
+
+		cerr << "Created " << letters.length() << " over " << sub_size << " letters" << endl;
+		cerr << "SubsetSize = " << elems << ", normalized Size = " << norm_elems << endl;
 
 		if (!subset.empty())
 		{
@@ -330,11 +334,22 @@ size_t WordBuilder::normalizeSet(vector<string>& set)
 	std::vector<string>::iterator unique;
 	std::vector<string>::iterator entry;
 
-
 	if (!set.empty())
 	{
+		cerr << ":normalizeSet:> Detecting multiples..." << endl;
+		done = 0.0f;
+		progress = 0.0f;
 		for (unique = set.begin(); unique != set.end(); ++unique)
 		{
+			done = done + 1.0;
+			if ((done / set.size()) > (progress + 0.01))
+			{
+				progress = done / set.size();
+				cerr << progress * 100 << "%" << endl;
+			}
+
+
+
 			if (unique->compare("") != 0)
 			{
 
@@ -362,9 +377,19 @@ size_t WordBuilder::normalizeSet(vector<string>& set)
 			++unique;
 		}
 
-
+		cerr << ":normalizeSet:> Rearanging multiples..." << endl;
+		done = 0.0f;
+		progress = 0.0f;
 		for (entry = set.begin(); (entry != set.end()) && (unique != set.end()); ++entry)
 		{
+			done = done + 1.0;
+			if ((done / count) > (progress + 0.01))
+			{
+				progress = done / count;
+				cerr << ":Rearanging:>" << progress * 100 << "%" << endl;
+			}
+
+
 			if (entry->compare("") == 0)
 			{
 				*entry = *unique;
@@ -385,7 +410,7 @@ size_t WordBuilder::normalizeSet(vector<string>& set)
 			}
 
 		}
-
+		cerr << ":normalizeSet:> Deleting multiples..." << endl;
 		set.resize(count);
 
 	}
@@ -408,6 +433,8 @@ void WordBuilder::sortWords()
 {
 	if (!sorted)
 	{
+		done = 0.0f;
+		progress = 0.0f;
 		quickSortWords(words, 0, words.size() - 1);
 	}
 	this->sorted = true;
@@ -425,8 +452,13 @@ size_t WordBuilder::quickSortWords(vector<string>& words, long first, long last)
 	string tmp;
 	size_t done_words = 0;
 
+	if ((left == right))
+	{
+		done += 1.0f;
+		return 1;
+	}
 
-	if ((left >= right) || (left < 0) || (right < 0) || (left >= words.size()) || (right >= words.size()))
+	if ((left > right) || (left < 0) || (right < 0) || (left >= words.size()) || (right >= words.size()))
 		return 0;
 
 	if ((last - first) == 1)
@@ -437,6 +469,7 @@ size_t WordBuilder::quickSortWords(vector<string>& words, long first, long last)
 			words[left] = words[right];
 			words[right] = tmp;
 		}
+		done += 2.0f;
 		return 2;
 	}
 
@@ -482,20 +515,24 @@ size_t WordBuilder::quickSortWords(vector<string>& words, long first, long last)
 #endif // CONFIG_DEBUG_PROGRESS
 	}
 
+
 	if (left > first)
 		done_words += quickSortWords(words, first, left - 1);
-	else
-		done_words += 1;
 
 
 	if (right < last)
 		done_words += quickSortWords(words, right, last);
 	else
-		done_words += 1;
-
-	if (((done_words * 100) / (words.size())) > 5)
 	{
-		cerr << done_words << " von " << words.size() << " Worten erledigt" << endl;
+		++done_words;
+		done += 1.0f;
+	}
+
+
+	if ((done / words.size()) >(progress + 0.01))
+	{
+		progress = done / words.size();
+		cerr << ":Sorting:>" << progress * 100 << "%" << endl;
 	}
 
 	return done_words;
@@ -562,47 +599,48 @@ size_t WordBuilder::deleteMultipleOccurence(bool case_sensitive)
 	if (!this->sorted)
 		isSorted();
 
-	done = 0;
-	progress = 0;
 
 	if (sorted)
 	{
 		if (!words.empty())
 		{
+			cerr << ":deleteMultipleOccurence:> Detecting multiples..." << endl;
+			done = 0.0f;
+			progress = 0.0f;
 			for (unique = words.begin(); unique != words.end(); ++unique)
 			{
 				done = done + 1.0;
-				if ((done / words.size()) > (progress + 0.001))
+				if ((done / words.size()) > (progress + 0.01))
 				{
 					progress = done / words.size();
 					cerr << progress * 100 << "%" << endl;
 				}
 				if (unique->compare("") != 0)
 				{
-					if (!case_sensitive)
-						ulower = this->lower(*unique);
-					else
-						ulower = *unique;
+						
+					ulower = this->lower(*unique);
+
 
 					++count;
 					entry = unique;
 					++entry;
 					if (entry != words.end())
 					{
-
-						if (!case_sensitive)
-							elower = this->lower(*entry);
-						else
-							elower = *entry;
+						elower = this->lower(*entry);
 					}
 					while ((entry != words.end()) && ((ulower.compare(elower) == 0)))
 					{
-						*entry = "";
+						if (case_sensitive && (unique->compare(*entry) == 0))
+						{
+							*entry = "";
+						}
+						else if (!case_sensitive)
+						{
+							*entry = "";
+						}
 						++entry;
-						if (!case_sensitive)
-							elower = this->lower(*entry);
-						else
-							elower = *entry;
+						elower = this->lower(*entry);
+
 					}
 				}
 
@@ -615,8 +653,18 @@ size_t WordBuilder::deleteMultipleOccurence(bool case_sensitive)
 			}
 
 
+			cerr << ":deleteMultipleOccurence:> Rearanging multiples..." << endl;
+			done = 0.0f;
+			progress = 0.0f;
 			for (entry = words.begin(); (entry != words.end()) && (unique != words.end()); ++entry)
 			{
+				done = done + 1.0;
+				if ((done / count) > (progress + 0.01))
+				{
+					progress = done / count;
+					cerr << ":Rearanging:>" << progress * 100 << "%" << endl;
+				}
+
 				if (entry->compare("") == 0)
 				{
 					*entry = *unique;
@@ -637,6 +685,7 @@ size_t WordBuilder::deleteMultipleOccurence(bool case_sensitive)
 				}
 			}
 
+			cerr << ":deleteMultipleOccurence:> Deleting multiples..." << endl;
 			words.resize(count);
 		}
 	}
