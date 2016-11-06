@@ -73,9 +73,10 @@ int main(int argc, char** argv)
 				ss.str("");
 				ss << string(argv[a]);
 				ss >> min_word_length;
+				cerr << ": Mindestwortlaenge: " << min_word_length << endl;
 			}
 		}
-		else if ((arg.compare("-scrabble") == 0))
+		else if ((arg.compare("-scrabble") == 0) || (arg.compare("-l") == 0))
 		{
 			++a;
 			cerr << "Option: " << arg;
