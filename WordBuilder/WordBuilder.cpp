@@ -335,23 +335,59 @@ size_t WordBuilder::normalizeSet(vector<string>& set)
 	{
 		for (unique = set.begin(); unique != set.end(); ++unique)
 		{
-			++count;
-			entry = unique;
-			++entry;
-			while (entry != set.end())
+			if (unique->compare("") != 0)
 			{
-				if (unique->compare(*entry) == 0)
+
+				++count;
+				entry = unique;
+				++entry;
+				while (entry != set.end())
 				{
-					//after erase entry already points to next element
-					entry = set.erase(entry);
-				}
-				else
-				{
+					if (unique->compare(*entry) == 0)
+					{
+						//after erase entry already points to next element
+						*entry = "";
+					}
+
 					//compare next element
 					++entry;
 				}
 			}
+
 		}
+
+		unique = set.begin(); ++unique;
+		while ((unique != set.end()) && (unique->compare("") == 0))
+		{
+			++unique;
+		}
+
+
+		for (entry = set.begin(); (entry != set.end()) && (unique != set.end()); ++entry)
+		{
+			if (entry->compare("") == 0)
+			{
+				*entry = *unique;
+				*unique = "";
+				++unique;
+				while ((unique != set.end()) && (unique->compare("") == 0))
+				{
+					++unique;
+				}
+			}
+			else if (entry == unique)
+			{
+				++unique;
+				while ((unique != set.end()) && (unique->compare("") == 0))
+				{
+					++unique;
+				}
+			}
+
+		}
+
+		set.resize(count);
+
 	}
 	return count;
 }
@@ -514,7 +550,7 @@ int WordBuilder::sortedWordsCirteria(const string& w1, const string& w2)
 
 }
 
-size_t WordBuilder::deleteMultipleOccurence()
+size_t WordBuilder::deleteMultipleOccurence(bool case_sensitive)
 {
 	size_t count = 0;
 	std::vector<string>::iterator unique;
@@ -539,23 +575,34 @@ size_t WordBuilder::deleteMultipleOccurence()
 				if ((done / words.size()) > (progress + 0.001))
 				{
 					progress = done / words.size();
-					cerr << progress * 100 << "%" << endl;;
+					cerr << progress * 100 << "%" << endl;
 				}
 				if (unique->compare("") != 0)
 				{
-					ulower = this->lower(*unique);
+					if (!case_sensitive)
+						ulower = this->lower(*unique);
+					else
+						ulower = *unique;
+
 					++count;
 					entry = unique;
 					++entry;
 					if (entry != words.end())
 					{
-						elower = this->lower(*entry);
+
+						if (!case_sensitive)
+							elower = this->lower(*entry);
+						else
+							elower = *entry;
 					}
 					while ((entry != words.end()) && ((ulower.compare(elower) == 0)))
 					{
 						*entry = "";
 						++entry;
-						elower = this->lower(*entry);
+						if (!case_sensitive)
+							elower = this->lower(*entry);
+						else
+							elower = *entry;
 					}
 				}
 
@@ -573,12 +620,20 @@ size_t WordBuilder::deleteMultipleOccurence()
 				if (entry->compare("") == 0)
 				{
 					*entry = *unique;
+					*unique = "";
+					++unique;
+					while ((unique != words.end()) && (unique->compare("") == 0))
+					{
+						++unique;
+					}
 				}
-
-				++unique;
-				while ((unique != words.end()) && (unique->compare("") == 0))
+				else if (entry == unique)
 				{
 					++unique;
+					while ((unique != words.end()) && (unique->compare("") == 0))
+					{
+						++unique;
+					}
 				}
 			}
 

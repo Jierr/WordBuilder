@@ -25,7 +25,7 @@ public:
 	size_t quickSortWords(vector<string>& words, long first, long last);
 	bool isSorted();
 	int sortedWordsCirteria(const string& w1, const string& w2);
-	size_t deleteMultipleOccurence();
+	size_t deleteMultipleOccurence(bool case_sensitive);
 
 	string lower(const string& str);
 	string upper(const string& str);

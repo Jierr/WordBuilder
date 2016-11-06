@@ -137,7 +137,7 @@ int main(int argc, char** argv)
 	if (option & OPTION_UNIQUE)
 	{
 		cerr << "Deleting multiples of words" << endl;
-		wordbuilder.deleteMultipleOccurence();
+		wordbuilder.deleteMultipleOccurence(true);
 
 
 		if (((option & OPTION_SCRABBLE) == 0))
