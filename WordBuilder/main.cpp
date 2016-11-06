@@ -31,6 +31,11 @@ int main(int argc, char** argv)
 	stringstream ss;
 	uint32_t option = OPTION_NONE;
 
+	cerr << "[usage] " << argv[0] << " -src <wordlist> ([-scrabble <letters>] | [-sort] | [-unique]) [-min <min_word_length>] >result.txt 2>debug.txt" << endl << endl;
+	cerr << "-sort : Sort <wordlist> and output result" << endl;
+	cerr << "-unique : Delete multiple occurences in <wordlist> and output result" << endl;
+	cerr << "-scrabble : solve scrabble for <letters> with at least <min_word_length> on dictionary <wordlist> and output result" << endl << endl;
+
 	while (a < argc)
 	{
 		arg = argv[a];
